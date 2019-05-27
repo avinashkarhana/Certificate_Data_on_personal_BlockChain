@@ -46,27 +46,10 @@ def sconnect(host,port,m):
             return (msg)
         s.close()
     except:
-        print("Node not active!")
-        
-#inital connection to Chain        
-                           
-myport = 9999
-fileoq=open("chain.txt","r")
-rdblq=fileoq.readable()
-fileoq.close()
-if not rdblq:
-    fileo=open("chain.txt","w")  
-    fileo.write("blockno:0;prevblockhash:0;data:genesis-block;timestamp:2019-05-27 01:53:59;blockhash:00cfb0ebf5ebe7eac75659241702a3a4967cf415ec63ef55a1487ac6")
-    fileo.close()
-    fileo=open("nodes.txt","w")  
-    fileo.write("127.0.0.1")
-    fileo.close()
-    checkchain(-1,"check") 
-    x=sconnect('127.0.0.1',myport,"first")
-    print(x)
-else:
-    x=sconnect('127.0.0.1',myport,"con")
-    print(x)
+        if m!="first":
+            print("Node not active!")
+        else:
+            return(False)
     
 def checkchain(bl,ze):
     d={}
@@ -91,6 +74,7 @@ def checkchain(bl,ze):
         x=x+d[a][0]
     x=x/2
     tr=filehash("chain.txt")
+    if d.get(tr)==None:d[tr]=[1,"1.1.1.1"]
     if d[tr][0]>x or d[tr][0]==d[al][0]:
         if ze=="add":
             xcv=addblock(bl)
@@ -241,6 +225,28 @@ def viewcert():
     z=checkchain(rb,"check")   
     print("\n",z)
     
+
+#inital connection to Chain        
+                           
+myport = 9999
+rdblq=os.path.isfile('chain.txt')
+if not rdblq:
+    fileo=open("chain.txt","w")  
+    fileo.write("blockno:0;prevblockhash:0;data:genesis-block;timestamp:2019-05-27 01:53:59;blockhash:00cfb0ebf5ebe7eac75659241702a3a4967cf415ec63ef55a1487ac6")
+    fileo.close()
+    fileo=open("nodes.txt","w")  
+    fileo.write("127.0.0.1")
+    fileo.close()
+    checkchain(-1,"check") 
+    x=sconnect('127.0.0.1',myport,"first")
+    print(x)
+    if not x:exit(1)
+else:
+    x=sconnect('127.0.0.1',myport,"con")
+    print(x)    
+    if not x:exit(1)
+
+    
 #Main Usage pannel for Admin;
 g=True
 while g:
@@ -249,10 +255,9 @@ while g:
     if opt=="*":
         print("Exiting !\n\n")
         break
-    opt=int(opt)
-    if opt==1:
+    if int(opt)==1:
         addcert()
-    elif opt==2:
+    elif int(opt)==2:
         viewcert()
     else:
         print("Invalid Option !")

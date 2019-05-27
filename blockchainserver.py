@@ -70,8 +70,8 @@ while True:
    if data=="first":
         ip="127.0.0.1"#change ip as per root and first node
         print("Updating Nodes From : ",ip)
-            url = "http://"+ip+":8000/nodes.txt" 
-            downchain(url)
+        url = "http://"+ip+":8000/nodes.txt" 
+        downchain(url)
         cb=red("nodes.txt")
         if cb!=str(addr[0]):
             fileo=open("nodes.txt","a")
