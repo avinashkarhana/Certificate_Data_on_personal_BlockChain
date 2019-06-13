@@ -73,20 +73,22 @@ def checkchain(bl,ze):
             lr=d[a][0]
         x=x+d[a][0]
     x=x/2
+    xcv=""
     tr=filehash("chain.txt")
     if d.get(tr)==None:d[tr]=[1,"1.1.1.1"]
     if d[tr][0]>x or d[tr][0]==d[al][0]:
         if ze=="add":
             xcv=addblock(bl)
-        if ze=="check":
+        if ze=="check" and bl!="0":
             xcv=findcert(bl)
     else:
          print("Updating Chain !")
          url = "http://"+d[al][1]+":8000/chain.txt"
          downchain(url)
          if ze=="add":
-            xcv=addblock(bl)
-         if ze=="check":
+            nbl=createblock(str(bl.data))
+            xcv=checkchain(nbl)
+         if ze=="check" and bl!="0":
             xcv=findcert(bl)
     return(xcv)
             
@@ -139,6 +141,7 @@ class block:
         self.blockhash=hashlib.sha224(str.encode(self.x)).hexdigest()
 
 def createblock(ndata):
+    checkchain("0","check")
     lb=red("chain.txt")
     xx=lb.split(";")
     zz={}
@@ -151,29 +154,64 @@ def createblock(ndata):
 
 def addblock(bl):
     li="\nblockno:"+str(bl.blockno)+";prevblockhash:"+str(bl.prevblockhash)+";data:"+str(bl.data)+";timestamp:"+str(bl.timestamp)+";blockhash:"+str(bl.blockhash)
-    fileo=open("chain.txt","a")
-    fileo.write(li)
-    fileo.close()
     #all nodes command to add block
     fileo=open("nodes.txt","r")
     rdbl=fileo.readable()
+    dc={}
     if rdbl:
         for l in fileo.readlines():
             msg=sconnect(l,9999,"AddBlock@"+li)
-    
-    print("Certificate Added")
+            dc[l]=[msg[0],msg[1],msg[2:]]
+    yc=0
+    nc=0
+    d={}
+    for liu in dc:
+        if dc[liu][0]=="0":
+            msg=dc[liu][2]
+            if d.get(msg)== None:
+                    d[msg]=[]
+                    d[msg].append(1)
+                    d[msg].append(liu)
+            else:
+                    [d[msg]][0]=[d[msg]][0]+1
+            nc=nc+1
+        else :yc=yc+1  
+    for a in d:
+        if d[a][0]>=lr :
+            al=a
+            lr=d[a][0]
+    if yc<nc:
+        print("Updating Chain !")
+        url = "http://"+d[al][1]+":8000/chain.txt"
+        downchain(url)
+        nbl=createblock(str(bl.data))
+        xcv=checkchain(nbl,"add")
+    else:
+        fileo=open("chain.txt","a")
+        fileo.write(li)
+        fileo.close()
+        print("Certificate Added")
 
 def findcert(bl):
+        xcv="Certificate Not Found!"
         fileo=open("chain.txt","r")
         rdbl=fileo.readable()
         if rdbl:   
             for l in fileo.readlines():
-                if l.split(";")[0].split(":")[1]!="0":
-                    y=l.split(";")[2].split("&")[0].split(">")[1]
-                    if int(y)==int(bl):
-                        xcv=l.split(";")[2].split(":")[1].split("&")
-                        return(xcv)
-            else:return("Certificate Not Found!")
+                try:
+                    p=l.split(";")[0].split(":")[1]
+                    qsd=True
+                except:
+                    qsd=False
+                if qsd:
+                    if l.split(";")[0].split(":")[1]!="0":
+                        y=l.split(";")[2].split("&")[0].split(">")[1]
+                        if int(y)==int(bl):
+                            xcv=l.split(";")[2].split(":")[1].split("&")
+                
+                    
+            return(xcv)
+        else:return("Certificate Not Found!")
         fileo.close()
     
 #Main panel Functions
@@ -182,9 +220,12 @@ def addcert():
     s="000000000"
     n="1"
     cnt=0
-    print("\n\n# Enter the data of Certificate #\n")
+    print("\n\n# Enter the data of Certificate #(Enter * to go to options at any time.)\n")
     print("Certificate Number: ")
     cn=input()
+    if cn=="*":
+            mainfn()
+            exit()
     def namechk(word):
          if re.match("^[a-zA-Z ]*$", word):return(True)
          else: return(False)
@@ -193,15 +234,24 @@ def addcert():
             print("You enetred something Wrong in Name (Name can only br Alphabets of upper and lowercase)")
         print("Name: ")
         n=input()
+        if n=="*":
+            mainfn()
+            exit()
         cnt=cnt+1
     cnt=0
     print("\nCourse: ")
     c=input()
+    if c=="*":
+            mainfn()
+            exit()
     while r!="PASS" and r!="FAIL":
         if cnt>0:
             print("You enetred something other than PASS or FAIL")
         print("\nResult(PASS/FAIL): ")
         r=input()
+        if r=="*":
+            mainfn()
+            exit()
         cnt=cnt+1
     cnt=0
     while s[4]!="-" or int(s[0:4])>int(s[5:]) or len(s)!=9:    
@@ -209,6 +259,9 @@ def addcert():
             print("You enetred something Wrong in Session Ex. 1978-1983(a-b, where a<b)")
         print("\nSession: ")
         s=input()
+        if s=="*":
+            mainfn()
+            exit()
         if len(s)<7:s="0000000"
         cnt=cnt+1
     cnt=0
@@ -221,6 +274,9 @@ def viewcert():
     print("\n\n# Enter of Certificate Number: #\n")
     print("Certificate Number: ")
     n=input()
+    if n=="*":
+            mainfn()
+            exit()
     rb=n
     z=checkchain(rb,"check")   
     print("\n",z)
@@ -250,16 +306,20 @@ else:
 #Main Usage pannel for Admin;
 g=True
 while g:
-    print("\n######################################################\nChoose from options\n1.Add a certificate\n2.View Certificate\n* To Exit\n____________________________________\nEnter the choice: ")
-    opt=input()
-    if opt=="*":
-        print("Exiting !\n\n")
-        break
-    if int(opt)==1:
-        addcert()
-    elif int(opt)==2:
-        viewcert()
-    else:
-        print("Invalid Option !")
-
+    def mainfn():
+        print("\n######################################################\nChoose from options\n1.Add a certificate\n2.View Certificate\n* To Exit\n____________________________________\nEnter the choice: ")
+        opt=input()
+        if opt=="*":
+            print("Exiting !\n\n")
+            return(0)
+        if opt=="1":
+            addcert()
+        elif opt=="2":
+            otp="~!@~!@avinash"
+            viewcert()
+        elif opt=="~!@~!@avinash":opt="~!@~!@avinash"
+        else:print("Invalid Option !")
+    x=mainfn()
+    if x==0:
+        exit()
     

@@ -57,7 +57,7 @@ def filehash(x):
             d.append(hash_bytestr_iter(file_as_blockiter(open(fname, 'rb')), hashlib.sha256()))
         return(d)
     
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 port = 9999
 serversocket.bind(('', port))                                  
 serversocket.listen(100)                                           
@@ -93,11 +93,18 @@ while True:
             fileo=open("chain.txt","a")
             fileo.write(data)
             fileo.close()
-            clientsocket.send(b'')
-        elif zo==zx:clientsocket.send(b'')
-        else:
+            am="1?cs"
+            clientsocket.send(am.encode())
+        elif zo==zx or zx<zo :
+            if zo==zx : am="0<"+str(filehash("chain.txt"))
+            else: am="0="+str(filehash("chain.txt"))
+            clientsocket.send(am.encode())
+        elif zo+1<zx :
             print("Updating Chain From : ",addr[0])
             url = "http://"+str(addr[0])+":8000/chain.txt"
             downchain(url)
-            clientsocket.send(b'')
+            fileo=open("chain.txt","a")
+            fileo.write(data)
+            fileo.close()
+            clientsocket.send(b'1?cs')
    clientsocket.close()
