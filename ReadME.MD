@@ -1,3 +1,5 @@
+A simple implemetation of Blockchain as a data structure for storing Academic Certificate data
+
 Usage: 
 
 
